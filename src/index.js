@@ -1,6 +1,8 @@
 import './style.css';
+import {
+  tasks, addTask, deleteTask, editTaskDescription,
+} from './functions.js';
 
-const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 }
@@ -9,29 +11,6 @@ const todoList = document.getElementById('todo-list');
 const addTaskButton = document.getElementById('addbtn');
 const newTaskInput = document.getElementById('inputtxt');
 const clearAllButton = document.getElementById('clearallbtn');
-
-function addTask(description) {
-  const newTask = {
-    description,
-    completed: false,
-    index: tasks.length + 1,
-  };
-  tasks.push(newTask);
-  saveTasks();
-}
-
-function deleteTask(index) {
-  tasks.splice(index, 1);
-  tasks.forEach((task, i) => {
-    task.index = i;
-  });
-  saveTasks();
-}
-
-function editTaskDescription(index, description) {
-  tasks[index].description = description;
-  saveTasks();
-}
 
 function renderTasks() {
   todoList.innerHTML = '';
