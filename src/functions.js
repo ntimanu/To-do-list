@@ -1,5 +1,4 @@
-const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];// eslint-disable-line
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 }
@@ -14,11 +13,15 @@ function addTask(description) {
   saveTasks();
 }
 
-function deleteTask(index) {
-  tasks.splice(index, 1);
-  tasks.forEach((task, i) => {
-    task.index = i;
-  });
+function deleteTask(targetIndex) {
+  const filterList = tasks.filter((item) => +item.index !== +targetIndex);
+  const newmylist = filterList.map((item, index) => ({
+    description: item.description,
+    completed: item.completed,
+    index: index + 1,
+  }));
+  localStorage.setItem('tasks', JSON.stringify(newmylist));
+  tasks = newmylist;
   saveTasks();
 }
 
