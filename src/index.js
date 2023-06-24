@@ -1,34 +1,42 @@
 import './style.css';
 
-const tasks = [
-  {
-    description: 'Complete JavaScript project',
-    completed: false,
-    index: 0,
-  },
-  {
-    description: 'Learn React',
-    completed: true,
-    index: 1,
-  },
-  {
-    description: 'Practice coding exercises',
-    completed: false,
-    index: 2,
-  },
-];
+const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
 const todoList = document.getElementById('todo-list');
 const addTaskButton = document.getElementById('addbtn');
 const newTaskInput = document.getElementById('inputtxt');
 const clearAllButton = document.getElementById('clearallbtn');
 
+function addTask(description) {
+  const newTask = {
+    description,
+    completed: false,
+    index: tasks.length + 1,
+  };
+  tasks.push(newTask);
+  saveTasks();
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  tasks.forEach((task, i) => {
+    task.index = i;
+  });
+  saveTasks();
+}
+
+function editTaskDescription(index, description) {
+  tasks[index].description = description;
+  saveTasks();
+}
+
 function renderTasks() {
   todoList.innerHTML = '';
 
-  for (let i = 0; i < tasks.length; i += 1) {
-    const task = tasks[i];
-
+  tasks.forEach((task, i) => {
     const listItem = document.createElement('li');
     listItem.classList.add('task');
 
@@ -38,6 +46,7 @@ function renderTasks() {
     checkbox.checked = task.completed;
     checkbox.addEventListener('change', () => {
       task.completed = checkbox.checked;
+      saveTasks();
     });
     listItem.appendChild(checkbox);
 
@@ -46,12 +55,31 @@ function renderTasks() {
     taskDescription.innerText = task.description;
     listItem.appendChild(taskDescription);
 
+    const editTaskDescriptionButton = document.createElement('button');
+    editTaskDescriptionButton.classList.add('edit-task-description');
+    editTaskDescriptionButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+    editTaskDescriptionButton.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = task.description;
+      input.classList.add('task-input');
+      input.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          editTaskDescription(i, input.value);
+          renderTasks();
+        }
+      });
+      listItem.replaceChild(input, taskDescription);
+      input.focus();
+    });
+    listItem.appendChild(editTaskDescriptionButton);
+
     const deleteButton = document.createElement('button');
     deleteButton.classList.add('delete-button');
     deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
     deleteButton.style.display = 'none';
     deleteButton.addEventListener('click', () => {
-      tasks.splice(i, 1);
+      deleteTask(i);
       renderTasks();
     });
     listItem.appendChild(deleteButton);
@@ -66,18 +94,13 @@ function renderTasks() {
     listItem.appendChild(ellipsisButton);
 
     todoList.appendChild(listItem);
-  }
+  });
 }
 
 addTaskButton.addEventListener('click', () => {
   const newTaskDescription = newTaskInput.value;
   if (newTaskDescription.trim() !== '') {
-    const newTask = {
-      description: newTaskDescription,
-      completed: false,
-      index: tasks.length,
-    };
-    tasks.push(newTask);
+    addTask(newTaskDescription);
     renderTasks();
     newTaskInput.value = '';
   }
@@ -90,8 +113,12 @@ newTaskInput.addEventListener('keyup', (event) => {
 });
 
 clearAllButton.addEventListener('click', () => {
-  const completedTasks = tasks.filter((task) => task.completed);
-  tasks.splice(0, tasks.length, ...completedTasks);
+  const incompleteTasks = tasks.filter((task) => !task.completed);
+  tasks.length = 0;
+  incompleteTasks.forEach((task) => {
+    tasks.push(task);
+  });
+  saveTasks();
   renderTasks();
 });
 
